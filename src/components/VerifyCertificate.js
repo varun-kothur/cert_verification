@@ -1,6 +1,9 @@
+// VerifyCertificate.js
 import React, { useState } from "react";
 import { Form, Button } from "react-bootstrap";
-import { contract } from "../contract";
+import { contract } from "../contract"; // Adjust the path if necessary
+
+
 
 function VerifyCertificate() {
   const [certificateId, setCertificateId] = useState("");
@@ -9,14 +12,18 @@ function VerifyCertificate() {
   const handleVerify = async (e) => {
     e.preventDefault();
     try {
+      if (!contract) {
+        throw new Error("Contract not initialized.");
+      }
+
       const result = await contract.methods
-        .getcert(certificateId)
+        .getCertificate(certificateId)
         .call();
 
       setCertificateData(result);
     } catch (error) {
       console.error("Error verifying certificate:", error);
-      alert("Certificate not found.");
+      alert("Certificate not found or an error occurred.");
     }
   };
 
@@ -43,11 +50,11 @@ function VerifyCertificate() {
           <p>Name: {certificateData[0]}</p>
           <p>Course: {certificateData[1]}</p>
           <p>Email: {certificateData[2]}</p>
-          <p>Issuer: {certificateData[3]}</p>
+          <p>IPFS Hash: {certificateData[3]}</p>
         </div>
       )}
     </div>
   );
 }
-
+console.log('Contract:', contract);
 export default VerifyCertificate;

@@ -1,37 +1,42 @@
 import React, { useState } from "react";
 import { Form, Button } from "react-bootstrap";
-import { contract } from "../contract";
-import { create } from "ipfs-http-client";
+import axios from 'axios';
 
-const ipfs = create("https://ipfs.infura.io:5001");
-
-function GenerateCertificate({ account }) {
+function GenerateCertificate() {
   const [name, setName] = useState("");
   const [course, setCourse] = useState("");
   const [email, setEmail] = useState("");
   const [transactionHash, setTransactionHash] = useState("");
-  const [ipfsHash, setIpfsHash] = useState("");
+  const [ipfsHash, setIpfsHash] = useState(""); // This can be left as an empty string if not used
+  const [certificateId, setCertificateId] = useState(""); // Added for storing certificate ID
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Prepare data for IPFS
-    const certificateData = JSON.stringify({ name, course, email });
+    // Prepare data for server
+    const certificateData = {
+      name,
+      course,
+      email,
+      ipfsHash, // This can be an empty string if IPFS is not used
+    };
 
     try {
-      // Upload to IPFS
-      const result = await ipfs.add(certificateData);
-      setIpfsHash(result.path);
+      // Send data to server
+      const response = await axios.post('http://localhost:5000/api/certificates', certificateData);
 
-      // Interact with smart contract
-      const txResult = await contract.methods
-        .addcert(name, course, email)
-        .send({ from: account });
-
-      setTransactionHash(txResult.transactionHash);
-      alert("Certificate generated successfully and stored on IPFS!");
+      // Check if response contains the certificate ID
+      const { data } = response; // Destructure response data
+      if (data && data.data && data.data._id) {
+        setCertificateId(data.data._id); // Set the certificate ID in the state
+        setTransactionHash(data.data._id); // For demo purposes, using _id as transaction hash
+        alert("Certificate generated and stored successfully!");
+      } else {
+        alert("Failed to retrieve certificate ID.");
+      }
     } catch (error) {
       console.error("Error generating certificate:", error);
+      alert("Failed to generate certificate. Please check the console for more details.");
     }
   };
 
@@ -72,7 +77,7 @@ function GenerateCertificate({ account }) {
       </Form>
       {transactionHash && (
         <div>
-          <h4>Transaction Hash:</h4>
+          <h4>Certificate ID:</h4>
           <p>{transactionHash}</p>
         </div>
       )}

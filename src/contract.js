@@ -1,5 +1,6 @@
-import Web3 from "web3";
-import Certificate from "./Certificate.json"; // Ensure path is correct
+// contract.js
+import Web3 from 'web3';
+import Certificate from './Certificate.json'; // Ensure this path is correct
 
 let web3;
 let contract;
@@ -22,9 +23,10 @@ const network = Certificate.networks[networkId];
 
 if (network && network.address) {
   contract = new web3.eth.Contract(Certificate.abi, network.address);
-  console.log("Contract connected:", network.address);
+  console.log("Contract connected at address:", network.address);
 } else {
   console.error("Contract not deployed on the selected network.");
 }
+console.log('Contract:', contract);
 
 export { web3, contract };
